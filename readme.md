@@ -18,7 +18,7 @@
 
 打开cmake-gui
 
-![1673077376474](image/readme/1673077376474.png)
+![1673078428310](image/readme/1673078428310.png)
 
 创建一个jsoncpp的库目录，比如“C:\Jsoncpp”，然后去 C:\Users\xxxx\Documents\jsoncpplib 目录下把include目录拷贝到 C:\Jsoncpp，除了CMakeFiles目录其他文件可以删除，然后再在 C:\Jsoncpp 下创建一个 lib 的目录， 之后去 C:\Users\\xxxx\Documents\jsoncpplib\bin\Debug 目录下把jsoncpp.dll拷贝到 C:\Jsoncpp\lib，还有一个文件 C:\Users\\xxxx\Documents\jsoncpplib\lib\Debug\jsoncpp.lib 也需要拷贝到 lib 下。
 
