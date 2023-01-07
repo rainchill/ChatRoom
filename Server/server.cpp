@@ -272,6 +272,11 @@ DWORD WINAPI ThreadFun(LPVOID lpThreadParameter)
 				Value root;
 				Reader r;
 				r.parse(ifs, root);
+				if (strcmp(root[recvbuf[seq].username].asString().c_str(), "") == 0) {
+					sendbuf[seq].pwIsTrue = false;
+					send(c, (char*)&sendbuf[seq], sizeof(sendbuf[seq]), 0);
+					continue;
+				}
 				if (strcmp(root[recvbuf[seq].username].asString().c_str(), recvbuf[seq].password) == 0)
 					sendbuf[seq].pwIsTrue = true;
 				else

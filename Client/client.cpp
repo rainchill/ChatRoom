@@ -129,6 +129,7 @@ int  main()
 		strcat(sendbuf.username, username);
 		strcat(sendbuf.password, passwd);
 		sendbuf.type = login;
+		sendbuf.pwIsTrue = false;
 		send(s, (char*)&sendbuf, sizeof(sendbuf), 0);
 		Sleep(1000);
 		recvbuf.pwIsTrue = false;
