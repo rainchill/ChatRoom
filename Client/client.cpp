@@ -3,6 +3,7 @@
 #include <Shlwapi.h>
 #include <direct.h>
 #include <string>
+#include <conio.h>
 #include <vector>
 using  namespace std;
 
@@ -60,7 +61,7 @@ int  main()
 		return 0;
 	}
 
-	//1.创建流式套接字
+	//创建流式套接字
 	SOCKET  s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET)
 	{
@@ -68,7 +69,7 @@ int  main()
 		return 0;
 	}
 
-	//2.链接服务器
+	//连接服务器
 	sockaddr_in   addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(8000);
@@ -83,7 +84,7 @@ int  main()
 
 
 
-	//3接收服务端的消息
+	//接收服务端的消息
 	char buf[100] = { 0 };
 	recv(s, buf, 100, 0);
 	cout << buf << endl;
@@ -97,27 +98,49 @@ int  main()
 
 	// 用户名 密码 验证
 	char username[1024], passwd[1024];
-	cout << "用户名：";
-	cin.getline(username, 1024);
-	cout << "密码：";
-	cin.getline(passwd, 1024);
-	memset(&sendbuf.username, 0, sizeof(sendbuf.username));
-	memset(&sendbuf.password, 0, sizeof(sendbuf.password));
-	//char pw[1024] = { 0 };
-	//strcat(pw, "\""); strcat(pw, passwd); strcat(pw, "\"");
-	strcat(sendbuf.username, username);
-	strcat(sendbuf.password, passwd);
-	sendbuf.type = login;
-	send(s, (char*)&sendbuf, sizeof(sendbuf), 0);
-	Sleep(1000);
-	recvbuf.pwIsTrue = false;
-	recv(s, (char*)&recvbuf, sizeof(recvbuf), 0);
-	if (recvbuf.pwIsTrue == false) {
-		cout << "密码错误" << endl;
-		return 0;
-	}
-	else {
-		cout << "\033[32m[Client] \033[0m登录成功!" << endl;
+	while (1)
+	{
+		cout << "用户名：";
+		cin.getline(username, 1024);
+		cout << "密码：";
+		// 不回显地输入密码
+		char ch;
+		int index = 0;
+		while ((ch = _getch()) != '\r') {
+			if (ch != '\b') {
+				cout << "*";
+				passwd[index++] = ch;
+			}
+			else {
+				if (index > 0) {
+					cout << "\b \b";
+					index--;
+				}
+			}
+		}
+		passwd[index] = '\0';
+		cout << endl;
+
+		//cin.getline(passwd, 1024);
+		memset(&sendbuf.username, 0, sizeof(sendbuf.username));
+		memset(&sendbuf.password, 0, sizeof(sendbuf.password));
+		//char pw[1024] = { 0 };
+		//strcat(pw, "\""); strcat(pw, passwd); strcat(pw, "\"");
+		strcat(sendbuf.username, username);
+		strcat(sendbuf.password, passwd);
+		sendbuf.type = login;
+		send(s, (char*)&sendbuf, sizeof(sendbuf), 0);
+		Sleep(1000);
+		recvbuf.pwIsTrue = false;
+		recv(s, (char*)&recvbuf, sizeof(recvbuf), 0);
+		if (recvbuf.pwIsTrue == false) {
+			cout << "\033[31m[Client] \033[0m" << "密码错误" << endl;
+			continue;
+		}
+		else {
+			cout << "\033[32m[Client] \033[0m登录成功!" << endl;
+			break;
+		}
 	}
 
 
@@ -138,6 +161,17 @@ int  main()
 		cin.getline(buf, 100);
 		p = strtok(buf, " ");
 		if (p) {
+			if (strcmp(p, "/help") == 0) {
+				cout << "使用: /[命令] [参数]\n"											\
+					"/online 查看当前在线人数\n"											\
+					"/tell [id]  [content] 与指定id的用户进行聊天\n"						\
+					"/tall [content] 向所有用户广播消息\n"									\
+					"/cls 查看用户当前所在目录下所有文件\n"									\
+					"/sls 查看服务端当前所在目录下的所有文件\n"								\
+					"/uploads [file name] 将用户目录下的文件上传到服务端\n"					\
+					"/download [file name] 将服务端的文件下载到客户端当前目录下\n"			\
+					"/relay [id] [file name] 将当前目录下指定的文件发送给指定id的用户\n";
+			}
 			if (strcmp(p, "/online") == 0) {
 				sendbuf.type = online;
 				//sendbuf.data[1024] = {0};
@@ -149,9 +183,21 @@ int  main()
 			}
 			else if (strcmp(p, "/tell") == 0) {
 				p = strtok(NULL, " ");
+				if (p == NULL) {
+					cout << "\033[31m[Client] \033[0m" << "请输入正确的命令格式" << endl;
+					continue;
+				}
 				sendbuf.toid = atoi(p);
+				if (sendbuf.toid == 0) {
+					cout << "\033[31m[Client] \033[0m" << "请输入正确的命令格式" << endl;
+					continue;
+				}
 				sendbuf.fromeid = id;
 				p = strtok(NULL, "");
+				if (p == NULL) {
+					cout << "\033[31m[Client] \033[0m" << "请输入正确的命令格式" << endl;
+					continue;
+				}
 				memset(&sendbuf.data, 0, sizeof(sendbuf.data));
 				strcat(sendbuf.data, p);
 				sendbuf.type = tell;
@@ -200,7 +246,8 @@ int  main()
 				strcat(srcfile, "\\"); strcat(srcfile, p);
 				fp = fopen(srcfile, "rb");
 				if (fp == NULL) {
-					cout << "open file" << p << "failed." << endl;
+					cout << "\033[31m[Client] \033[0m" <<"open file" << p << "failed." << endl;
+					continue;
 				}
 				memset(&sendbuf.file_name, 0, sizeof(sendbuf.file_name));
 				memset(&sendbuf.data, 0, sizeof(sendbuf.data));
@@ -264,7 +311,7 @@ int  main()
 	} while (ret != SOCKET_ERROR && ret != 0);
 
 
-	//4.关闭监听套接字
+	//关闭监听套接字
 	closesocket(s);
 
 	//清理winsock2的环境
@@ -289,24 +336,24 @@ DWORD WINAPI ThreadFunRecv(LPVOID lpThreadParameter)
 			case online:
 			{
 				//ret = recv(s, (char*)&recvbuf, sizeof(recvbuf), 0);
-				cout << recvbuf.data << endl;
+				cout << "\033[32m[Client] \033[0m" << recvbuf.data << endl;
 			}
 			break;
 			case tell:
 			{
-				cout << "\n来自" << recvbuf.fromeid << "的消息：" << recvbuf.data << endl;
+				cout << "\033[32m[Client] \033[0m" <<"\n来自" << recvbuf.fromeid << "的消息：" << recvbuf.data << endl;
 
 			}
 			break;
 			case tellall:
 			{
-				cout << "\n来自客户" << recvbuf.fromeid << "的广播消息：" << recvbuf.data << endl;
+				cout << "\033[32m[Client] \033[0m" <<"\n来自客户" << recvbuf.fromeid << "的广播消息：" << recvbuf.data << endl;
 
 			}
 			break;
 			case sls:
 			{
-				cout << "\n服务器文件：" << endl << recvbuf.data << endl;
+				cout << "\033[32m[Client] \033[0m" << "\n服务器文件：" << endl << recvbuf.data << endl;
 			}
 			break;
 			case download:

@@ -77,7 +77,7 @@ int main()
 		return 0;
 	}
 
-	// 1. 创建流式套接字
+	// 创建流式套接字
 	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET)
 	{
@@ -85,7 +85,7 @@ int main()
 		return 0;
 	}
 
-	// 2. 绑定端口和ip
+	// 绑定端口和ip
 	sockaddr_in addr;
 	memset(&addr, 0, sizeof(sockaddr_in));
 	addr.sin_family = AF_INET;
@@ -99,7 +99,7 @@ int main()
 		return 0;
 	}
 
-	// 3. 监听
+	// 监听
 	listen(s, 5);
 
 	// 主线程循环接收客户端的连接
@@ -107,7 +107,7 @@ int main()
 	{
 		sockaddr_in addrClient;
 		len = sizeof(sockaddr_in);
-		// 4.接受成功返回与client通讯的Socket
+		// 接受成功返回与client通讯的Socket
 		SOCKET c = accept(s, (SOCKADDR*)&addrClient, &len);
 		int seq;
 		client_id_group.push_back(c);
@@ -124,7 +124,7 @@ int main()
 
 	}
 
-	// 6.关闭监听套接字
+	// 关闭监听套接字
 	closesocket(s);
 
 	// 清理winsock2的环境
@@ -358,10 +358,6 @@ DWORD WINAPI ThreadFunKeyInput(LPVOID lpThreadParameter)
 					cout << "\033[32m[log] \033[0m" << sbuf << endl;
 				}
 			}
-			
-			//ch = _getch();//使用_getch()函数获取按下的键值
-			//cout << ch;
-			//if (ch == 27) { break; }//当按下ESC时循环，ESC键的键值时27.
 		}
 	}
 }
